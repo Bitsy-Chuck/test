@@ -1,0 +1,17 @@
+grouping service
+
+ffmpeg -f concat -safe 0 -i mylist.txt -c copy output.wav
+ffmpeg -y -i v1.mp4 -vf "[in]scale=iw*min(480/iw\,320/ih):ih*min(480/iw\,320/ih)[scaled]; [scaled]pad=480:320:(480-iw*min(480/iw\,320/ih))/2:(320-ih*min(480/iw\,320/ih))/2[padded]; [padded]setsar=1:1[out]" -c:v libx264 -c:a copy "%%~ni_shrink.mp4"
+ffmpeg -i v1.mp4 -vf "scale=1280:720:force_original_aspect_ratio=decrease:eval=frame,pad=1280:720:-1:-1:color=black" output
+ffmpeg -i v11.mp4 -i v12.mp4 -filter_complex "[0:v:0][0:a:0][1:v:0][1:a:0][2:v:0][2:a:0]concat=n=2:v=1:a=1[outv][outa]" -map "[outv]" -map "[outa]" output.mp4
+ffmpeg -i v1.mp4 -i v2.mp4 -filter_complex "[0]setdar=16/9[a];[1]setdar=16/9[b]; [a][0:a][b][1:a]concat=n=2:v=1:a=1" -vsync 2 output1.mp4
+ffmpeg -i v11.mp4 -i v22.mp4 -filter_complex "[0:v]scale=1024:576:force_original_aspect_ratio=1[v0]; [1:v]scale=1024:576:force_original_aspect_ratio=1[v1]; [v0][0:a][v1][1:a]concat=n=2:v=1:a=1[v][a]" -map "[v]" -map "[a]" output.mp4
+
+
+ Input link in0:v0 parameters (size 1280x720, SAR 1:1) do not match the corresponding output link in0:v0 parameters (608x1080, SAR 60:19)
+
+
+
+What works
+ffmpeg -y -i v1.mp4 -vf "[in]scale=iw*min(480/iw\,320/ih):ih*min(480/iw\,320/ih)[scaled]; [scaled]pad=480:320:(480-iw*min(480/iw\,320/ih))/2:(320-ih*min(480/iw\,320/ih))/2[padded]; [padded]setsar=1:1[out]" -c:v libx264 -c:a copy "%%~ni_shrink.mp4"
+ffmpeg -i v1.mp4 -i v2.mp4 -filter_complex "[0]setdar=16/9[a];[1]setdar=16/9[b]; [a][0:a][b][1:a]concat=n=2:v=1:a=1" -vsync 2 output1.mp4
